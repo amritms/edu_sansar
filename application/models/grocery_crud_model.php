@@ -563,8 +563,10 @@ class grocery_CRUD_Model  extends CI_Model  {
 	    		//echo $fields->field->id;
 	    		$fields = $this->itirate($data);
 	    		 
-	    		var_dump($fields);exit;
 	    		//var_dump($fields);exit;
+// 	    		var_dump($fields);
+// 	    		echo $fields->field[0]->id;
+// 	    		exit;
 	    		if(isset($table->TABLE_NAME) && $this->db->get($table->TABLE_NAME)->result() > 0)
 	    		{
 	    			$related_tables[] = $table->COLUMN_NAME;
@@ -573,7 +575,7 @@ class grocery_CRUD_Model  extends CI_Model  {
 	    			//echo $this->is_unique($table->COLUMN_NAME, $table->TABLE_NAME, $fields->field->id);
 	    			///exit;
 	    			//if($this->is_unique($table->COLUMN_NAME, $table->TABLE_NAME, $fields->field->id)){
-	    				$data[$table->TABLE_NAME] = $this->db->get_where($table->TABLE_NAME, array($table->COLUMN_NAME => $fields->field->id))->result();
+	    				$data[$table->TABLE_NAME] = $this->db->get_where($table->TABLE_NAME, array($table->COLUMN_NAME => $fields->field[1]->id))->result();
 	    			//}
 // 	    			foreach($data as $db)
 // 	    			{
