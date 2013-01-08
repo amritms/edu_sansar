@@ -519,11 +519,11 @@ class grocery_CRUD_Model  extends CI_Model  {
     	}
     }
     
-    public function is_unique($field, $table, $str)
+    public function is_exists($field, $table, $str)
     {
     	$query = $this->db->limit(1)->get_where($table, array($field => $str));
     
-    	return $query->num_rows() === 0 ? true : false;
+    	return $query->num_rows() > 0 ? true : false;
     }
 
     public function itirate($data)
@@ -575,17 +575,17 @@ class grocery_CRUD_Model  extends CI_Model  {
 	    			//echo $this->is_unique($table->COLUMN_NAME, $table->TABLE_NAME, $fields->field->id);
 	    			///exit;
 	    			foreach($fields->field as $db){
-	    			if($this->is_unique($table->COLUMN_NAME, $table->TABLE_NAME, $db->id)){
+	    			if($this->is_exists($table->COLUMN_NAME, $table->TABLE_NAME, $db->id)){
 	    				$data[$table->TABLE_NAME] = $this->db->get_where($table->TABLE_NAME, array($table->COLUMN_NAME => $db->id))->result();
 	    			}}
 	    				$related_tables[] = $table->COLUMN_NAME;
 	    				$table = $this->get_related_tables($table->TABLE_NAME);
 	    				$fields = $this->itirate($data);
 	    				foreach($fields->field as $db){
-	    					if($this->is_unique($table->COLUMN_NAME, $table->TABLE_NAME, $db->id) == true){
-	    						echo $db->id.'<br />';
+	    					echo $this->is_exists($table->COLUMN_NAME, $table->TABLE_NAME, $db->id) == TRUE ? 'TRUE<br />' : 'FALSE<br />';
+	    					if($this->is_exists($table->COLUMN_NAME, $table->TABLE_NAME, $db->id) === true){
 	    						$data[$table->TABLE_NAME] = $this->db->get_where($table->TABLE_NAME, array($table->COLUMN_NAME => $db->id))->result();
-	    						break;
+	    						//break;
 	    					}
 	    				}
 	    				echo var_dump($data);exit;
