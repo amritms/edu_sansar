@@ -509,42 +509,65 @@ class grocery_CRUD_Model  extends CI_Model  {
     	 }
     }
     
+    /**
+     * Gets the primary key
+     * 
+     * @author Suraj Kumar Adhikari <surajadhikari1929@gmail.com>
+     * @param 	string 	$table_name
+     * @param 	string 	$column
+     */
     public function get_primarykey_value($table_name, $column)
     {
     	$result  = $this->db->select($column)->get($table_name)->result();
-    	//echo $row->$column;
     	foreach($result as $row)
     	{
     		return $row->$column;
     	}
     }
     
+    /**
+     * Checkes if the field value existed
+     * 
+     * @author Suraj Kumar Adhikari <surajadhikari1929@gmail.com>
+     * @param 	string	 $field
+     * @param 	string	 $table
+     * @param 	string	 $str
+     * @return 	boolean
+     */
     public function is_exists($field, $table, $str)
     {
     	$query = $this->db->limit(1)->get_where($table, array($field => $str));
     
     	return $query->num_rows() > 0 ? true : false;
     }
-
-    public function itirate($data)
+	
+    /**
+     * Iterates $data array
+     * 
+     * @author 	Suraj Kumar Adhikari <surajadhikari1929@gmail.com>
+     * @param 	array		 $data
+     * @return 	stdClass
+     */
+    public function iterate($data)
     {
     	$fields = new stdClass();
-    	
+    
     	foreach($data as $db)
     	{
-    		foreach($db as $cb)
+    	    foreach($db as $value)
     		{
-    			$fields->field[] = $cb;
+    			$fields->field[] = $value;
     		}
-    	}
-
-    	return $fields;
+    	 }
+		return $fields;
     }
     
     /**
-     * Relation table deletion
+     * Checkes if the table has a foreign key relation with another table
      * 
      * @author Suraj Kumar Adhikari <surajadhikari1929@gmail.com>
+     * @param  string		 $primary_key_field
+     * @param  int			 $primary_key_value
      */
     public function recurse($primary_key_field, $primary_key_value)
     {
@@ -557,67 +580,32 @@ class grocery_CRUD_Model  extends CI_Model  {
 	    	if(isset($table->TABLE_NAME) && ($this->db->get($table->TABLE_NAME)->result() > 0))
 	    	{
 	    		$data[$table->TABLE_NAME] = $this->db->get_where($table->TABLE_NAME, array($table->COLUMN_NAME => $primary_key_value))->result();
-	    		//echo $this->get_primarykey_value($table->TABLE_NAME);exit;
-	    		//var_dump($data);exit;
-	    		//var_dump($fields);
-	    		//echo $fields->field->id;
-	    		$fields = $this->itirate($data);
-	    		 
-	    		//var_dump($fields);exit;
-// 	    		var_dump($fields);
-// 	    		echo $fields->field[0]->id;
-// 	    		exit;
+	    		$fields = $this->iterate($data);
+	  
 	    		if(isset($table->TABLE_NAME) && $this->db->get($table->TABLE_NAME)->result() > 0)
 	    		{
 	    			$related_tables[] = $table->COLUMN_NAME;
 	    			$table = $this->get_related_tables($table->TABLE_NAME);
-	    			//echo $table->COLUMN_NAME;exit;
-	    			//echo $this->is_unique($table->COLUMN_NAME, $table->TABLE_NAME, $fields->field->id);
-	    			///exit;
-	    			foreach($fields->field as $db){
-	    			if($this->is_exists($table->COLUMN_NAME, $table->TABLE_NAME, $db->id)){
-	    				$data[$table->TABLE_NAME] = $this->db->get_where($table->TABLE_NAME, array($table->COLUMN_NAME => $db->id))->result();
-	    			}}
+	    			foreach($fields->field as $db)
+	    			{
+		    			if($this->is_exists($table->COLUMN_NAME, $table->TABLE_NAME, $db->id)){
+		    				$data[] = $this->db->get_where($table->TABLE_NAME, array($table->COLUMN_NAME => $db->id))->result();
+		    			}
+	    			}
 	    				$related_tables[] = $table->COLUMN_NAME;
 	    				$table = $this->get_related_tables($table->TABLE_NAME);
-	    				$fields = $this->itirate($data);
-	    				foreach($fields->field as $db){
-	    					echo $this->is_exists($table->COLUMN_NAME, $table->TABLE_NAME, $db->id) == TRUE ? 'TRUE<br />' : 'FALSE<br />';
+	    				
+	    				if(!empty($table)){
+	    					$fields = $this->iterate($data);
+	    				  foreach($fields->field as $db){
 	    					if($this->is_exists($table->COLUMN_NAME, $table->TABLE_NAME, $db->id) === true){
 	    						$data[$table->TABLE_NAME] = $this->db->get_where($table->TABLE_NAME, array($table->COLUMN_NAME => $db->id))->result();
-	    						//break;
+	    						}
 	    					}
 	    				}
-	    				echo var_dump($data);exit;
-	    				//}
-// 	    			foreach($data as $db)
-// 	    			{
-// 	    				foreach($db as $cb)
-// 	    				{
-// 	    					$fields->field_2 = $cb;
-// 	    				}
-// 	    			}
-// 	    			if(isset($table->TABLE_NAME) && $this->db->get($table->TABLE_NAME)->result() > 0)
-// 	    			{
-// 	    				$related_tables[] = $table->COLUMN_NAME;
-// 	    				$table = $this->get_related_tables($table->TABLE_NAME);
-// 	    				$data[$table->TABLE_NAME] = $this->db->get_where($table->TABLE_NAME, array($table->COLUMN_NAME => $this->get_primarykey_value($table->TABLE_NAME, $table->COLUMN_NAME)))->result();
-	    				 
-// 	    			}
-// 	    			while($table = $this->get_related_tables($table->TABLE_NAME))
-// 	    			{
-// 	    				//$data[$table->TABLE_NAME] = $this->db->get_where($table->TABLE_NAME)->result();
-	    				
-// 	    				if($this->is_unique($table->COLUMN_NAME, $table->TABLE_NAME, $fields->field->id) )
-// 	    				{
-// 	    					//echo $this->get_primarykey_value($table->TABLE_NAME, $table->COLUMN_NAME) . '<br />';
-// 	    					$data[$table->TABLE_NAME] = $this->db->get_where($table->TABLE_NAME, array($table->COLUMN_NAME => $this->get_primarykey_value($table->TABLE_NAME, $table->COLUMN_NAME)))->result();
-// 	    					//$data[$table->TABLE_NAME] = $this->db->get_where($table->TABLE_NAME)->result();
-// 	    				}
-// 	    			}
+	    			}
 	    		}
-	    	}
-    	}
+    		}
   var_dump($data);
     	exit;
     	if(isset($data) && is_array($data))
@@ -672,24 +660,22 @@ class grocery_CRUD_Model  extends CI_Model  {
     					}
 					}
     			}
-    			//var_dump($rol);
-    			foreach ( $rol as $key => $value){
+    			
+    			foreach ( $rol as $key => $value)
+    			{
     				foreach($related_tables as $tables)
     				{
-    				
-    					foreach($value as $val){
-//     					echo $key;
-//     					var_dump($val);
-    					if(property_exists($val, $tables))
+    					foreach($value as $val)
+    					{
+    						if(property_exists($val, $tables))
     						{
     							echo $tables . '<br />';
-    							
     							break;
     						}
     					}
     				}
     			}
-    			exit;
+    			
     			foreach($result as $row)
     			{
     				if(!empty($related_tables) && is_array($related_tables))
