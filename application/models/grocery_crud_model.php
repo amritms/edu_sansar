@@ -586,118 +586,147 @@ class grocery_CRUD_Model  extends CI_Model  {
 	    		{
 	    			$related_tables[] = $table->COLUMN_NAME;
 	    			$table = $this->get_related_tables($table->TABLE_NAME);
-	    			foreach($fields->field as $db)
+	    			
+	    			if(!empty($table))
 	    			{
-		    			if($this->is_exists($table->COLUMN_NAME, $table->TABLE_NAME, $db->id)){
-		    				$data[] = $this->db->get_where($table->TABLE_NAME, array($table->COLUMN_NAME => $db->id))->result();
+		    			foreach($fields->field as $db)
+		    			{
+			    			if($this->is_exists($table->COLUMN_NAME, $table->TABLE_NAME, $db->id)){
+			    				$data[$table->TABLE_NAME][] = $this->db->get_where($table->TABLE_NAME, array($table->COLUMN_NAME => $db->id))->result();
+			    			}
+		    			}
+		    			
+		    			$related_tables[] = $table->COLUMN_NAME;
+		    			$table = $this->get_related_tables($table->TABLE_NAME);
+		    			
+		    			if(!empty($table))
+		    			{
+		    				$related_tables[] = $table->COLUMN_NAME;
+		    				$fields = $this->iterate($data);
+		    				foreach($data as $key => $value)
+		    				{
+		    					foreach($value as $val)
+		    					{
+		    						if(is_array($val))
+		    						{
+		    							foreach($val as $v)
+		    							{
+		    								if($this->is_exists($table->COLUMN_NAME, $table->TABLE_NAME, $v->id) === true){
+		    									$data[$table->TABLE_NAME][] = $this->db->get_where($table->TABLE_NAME, array($table->COLUMN_NAME => $v->id))->result();
+		    								}
+		    							}
+		    						}
+		    						else
+		    						{
+		    							if($this->is_exists($table->COLUMN_NAME, $table->TABLE_NAME, $val->id) === true)
+		    							{
+		    								$data[$table->TABLE_NAME][] = $this->db->get_where($table->TABLE_NAME, array($table->COLUMN_NAME => $val->id))->result();
+		    							}
+		    						}
+		    					}
+		    					 
+		    				}
 		    			}
 	    			}
-	    				$related_tables[] = $table->COLUMN_NAME;
-	    				$table = $this->get_related_tables($table->TABLE_NAME);
 	    				
-	    				if(!empty($table)){
-	    					$fields = $this->iterate($data);
-	    				  foreach($fields->field as $db){
-	    					if($this->is_exists($table->COLUMN_NAME, $table->TABLE_NAME, $db->id) === true){
-	    						$data[$table->TABLE_NAME] = $this->db->get_where($table->TABLE_NAME, array($table->COLUMN_NAME => $db->id))->result();
+	    		}
+	    	}
+    	}
+	
+	foreach(array_reverse($data) as $key => $value)
+	{
+		foreach(array_reverse($related_tables) as $table)
+		{
+			foreach($value as $tables)
+			{
+				if(is_array($tables))
+				{
+					foreach($tables as $column)
+					{
+						if(property_exists($column, $table))
+						{
+							$result[$key][] = $this->db->get_where($key, array($table => $column->$table))->result();
+							break;
+						}
+						
+					}
+				}
+				else
+				{
+						if(property_exists($tables, $table))
+						{
+							$result[$key][] = $this->db->get_where($key, array($table => $tables->$table))->result();
+							break;
+						}
+				}
+			}
+		}
+	}
+	
+	if(isset($result))
+	{
+		foreach($result as $key => $value)
+		{
+			foreach($value as $val)
+			{
+				foreach($val as $aval)
+				{
+					if(property_exists($aval, 'url') && !empty($aval->url))
+	    			{
+	    					$segment = $this->uri->segment(3) . '_images/';
+	    					
+	    					if(file_exists($this->config->item('dir') . '/assets/uploads/'. $segment . $aval->url))
+	    					{
+	    						if(unlink($this->config->item('dir') . '/assets/uploads/'. $segment . $aval->url))
+	    						{
+	    						 	if(file_exists($this->config->item('dir') . '/assets/uploads/'. $segment . 'thumb__'.$aval->url))
+	    							{
+	    								if(unlink($this->config->item('dir') . '/assets/uploads/'. $segment . 'thumb__'.$aval->url))
+	    								{
+	    									$this->db->limit(1)->delete($key, array('ent_ev_albums_id' => $aval->ent_ev_albums_id));
+	    									
+	    									if($this->db->affected_rows() > 0)
+	    									{
+	    										$message['album'] = 'Album has been deleted';
+	    									}
+	    								}
+	    							}
 	    						}
 	    					}
-	    				}
-	    			}
-	    		}
-    		}
-  var_dump($data);
-    	exit;
-    	if(isset($data) && is_array($data))
-    	{
-    		$message = array();
-    		
-    		$tbls = array();
-    		
-    		foreach(array_reverse($data) as $key => $value)
-    		{
-    			foreach(array_reverse($related_tables) as $tables)
-	    		{
-	    			foreach($value as $rows)
-	    			{
-	    				if(array_key_exists($tables, $rows))
-	    		    	{
-	    		    		echo $tables  . ' = '.$rows->$tables . '<br />';
- 	    		    		$result = $this->db->get_where($key, array($tables => $rows->$tables))->result();
- 	    		    		$rol[$key] = $result;
-	    					break;
-	    		    	}
-	    		    }
-	    		}
-	    			
-    			if(!empty($result))
-    			{
-    				if(property_exists($result[0], 'url') && !empty($result[0]->url))
-    				{
-    					$segment = $this->uri->segment(3) . '_images/';
-    					  
-    					  foreach($result as $row)
-    						{
-    							if(file_exists($this->config->item('dir') . '/assets/uploads/'. $segment . $row->url))
-    							{
-    								if(unlink($this->config->item('dir') . '/assets/uploads/'. $segment . $row->url))
-    								{
-    									if(file_exists($this->config->item('dir') . '/assets/uploads/'. $segment . 'thumb__'.$row->url))
-    									{
-    										if(unlink($this->config->item('dir') . '/assets/uploads/'. $segment . 'thumb__'.$row->url))
-    										{
-    											$this->db->limit(1)->delete($key, array('ent_ev_albums_id' => $row->ent_ev_albums_id));
-    												
-    											if($this->db->affected_rows() > 0)
-    											{
-    												$message['album'] = 'Album has been deleted';
-    											}
-    										}
-    									}
-    								}
-    							}
-    						}
-    					}
+	    				} 
+	    				else 
+	    				{
+	    					if(!empty($related_tables) && is_array($related_tables))
+	    						{
+	    							foreach(array_reverse($related_tables) as $tbl)
+	    							{
+	    								if(property_exists($aval, $tbl))
+	    								{
+	    									if(property_exists($aval, 'image'))
+	    									{
+	    										$segment = $this->uri->segment(3) . '/';
+
+													if(file_exists($this->config->item('dir') . '/assets/uploads/'. $segment . $aval->image))
+													{
+														if(unlink($this->config->item('dir') . '/assets/uploads/'. $segment . $aval->image))
+														{
+															$this->db->delete($key, array($tbl => $aval->$tbl));
+														}
+													}
+	    										}
+	    										else
+	    										{
+	    											$this->db->delete($key, array($tbl => $aval->$tbl));
+	    										}
+	    									}
+	    								}
+	    							}
+	    						}
+	    					}
+						}
 					}
-    			}
-    			
-    			foreach ( $rol as $key => $value)
-    			{
-    				foreach($related_tables as $tables)
-    				{
-    					foreach($value as $val)
-    					{
-    						if(property_exists($val, $tables))
-    						{
-    							echo $tables . '<br />';
-    							break;
-    						}
-    					}
-    				}
-    			}
-    			
-    			foreach($result as $row)
-    			{
-    				if(!empty($related_tables) && is_array($related_tables))
-    				{
-    					foreach(array_reverse($related_tables) as $tables)
-    					{
-    						if(property_exists($row, $tables))
-    						{
-    							var_dump($related_tables);
-    							echo $key . ' ' . $tables . ' '. $row->$tables . '<br />';
-    							//$this->db->delete($key, array($tables => $row->$tables));
-    						}
-    					}
-    				}
-    			}
-    		}
-    	
-	    	if(array_key_exists('album', $message) && is_array($message) && !empty($message))
-	    	{
-	    		print_r($message);
-	    	}
-    }
+				}
+			}
 
     /**
      * Database delete
@@ -715,7 +744,7 @@ class grocery_CRUD_Model  extends CI_Model  {
 			
 		$result = $this->db->get_where($this->table_name, array($primary_key_field => $primary_key_value))->result();
 		
-		$this->recurse($primary_key_field, $primary_key_value);exit;
+		$this->recurse($primary_key_field, $primary_key_value);
 		
 		if(property_exists($result[0], 'image') && !empty($result[0]->image))
 		{
