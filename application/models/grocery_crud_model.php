@@ -648,16 +648,15 @@ class grocery_CRUD_Model  extends CI_Model  {
 							$result[$key][] = $this->db->get_where($key, array($table => $column->$table))->result();
 							break;
 						}
-						
 					}
 				}
 				else
 				{
-						if(property_exists($tables, $table))
-						{
-							$result[$key][] = $this->db->get_where($key, array($table => $tables->$table))->result();
-							break;
-						}
+					if(property_exists($tables, $table))
+					{
+						$result[$key][] = $this->db->get_where($key, array($table => $tables->$table))->result();
+						break;
+					}
 				}
 			}
 		}
@@ -702,7 +701,7 @@ class grocery_CRUD_Model  extends CI_Model  {
 	    							{
 	    								if(property_exists($aval, $tbl))
 	    								{
-	    									if(property_exists($aval, 'image'))
+	    									if(property_exists($aval, 'image')   && !empty($aval->image))
 	    									{
 	    										$segment = $this->uri->segment(3) . '/';
 
